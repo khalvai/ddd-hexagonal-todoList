@@ -1,1 +1,1 @@
-assignment project for demonstrating skills
+to do list project with Hexagonal architecture and DDD concepts.
