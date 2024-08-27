@@ -2,16 +2,11 @@ FROM node:20 As development
 
 WORKDIR /usr/src/app
 
-RUN git clone https://github.com/vishnubob/wait-for-it.git
-COPY --chown=node:node package*.json ./
-COPY --chown=node:node yarn.lock ./
+COPY  package*.json ./
+COPY  yarn.lock ./
 
-RUN yarn 
-COPY --chown=node:node . .
-
-
-
-RUN yarn prisma generate
+RUN  yarn 
+COPY  . .
 
 EXPOSE 3000
 CMD [ "yarn", "dev" ]
@@ -23,12 +18,12 @@ FROM node:20  As build
 
 WORKDIR /usr/src/app
 
-COPY --chown=node:node package*.json ./
-COPY --chown=node:node yarn.lock ./
+COPY  package*.json ./
+COPY  yarn.lock ./
 
-COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
+COPY  --from=development /usr/src/app/node_modules ./node_modules
 
-COPY --chown=node:node . .
+COPY  . .
 
 RUN yarn run build
 
@@ -40,8 +35,8 @@ USER node
 
 FROM node:20  As production
 
-COPY --chown=node:node --from=build /usr/src/app/node_modules ./app/node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist  ./app/dist
+COPY  --from=build /usr/src/app/node_modules ./app/node_modules
+COPY  --from=build /usr/src/app/dist  ./app/dist
 COPY .env /app/.env
 ENV NODE_ENV=production
 # start the server
