@@ -1,9 +1,9 @@
-import { OutboxModel } from "src/User/Infrastructure/Output/Mapper/OutboxMapper";
+import DomainEvent from 'src/Common/Domain/DomainEvent';
+import { OutboxModel } from 'src/User/Infrastructure/Output/Mapper/OutboxMapper';
 
-
-export const OutboxRepository = Symbol("OutboxRepository").valueOf();
+export const OutboxRepository = Symbol('OutboxRepository').valueOf();
 export interface OutboxRepository {
   getUnDispatched(): Promise<OutboxModel[]>;
-  save(outboxes: OutboxModel[], connection: any): Promise<void>;
+  save(events: DomainEvent<any>[], connection: any): Promise<void>;
   dispatched(eventId: string): Promise<void>;
 }

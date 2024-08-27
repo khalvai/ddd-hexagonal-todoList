@@ -5,12 +5,17 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from 'src/User/UserModule';
 import { ScheduleModule } from '@nestjs/schedule';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [ConfigModule.forRoot(),
-  ScheduleModule.forRoot(),
-  EventEmitterModule.forRoot(), UserModule],
+  imports: [
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGODB_URI || ''),
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
+    UserModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
