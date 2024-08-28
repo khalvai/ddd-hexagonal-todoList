@@ -1,32 +1,18 @@
-import DomainEvent from "src/Common/Domain/DomainEvent";
-import UUID4 from "src/Common/Domain/UUID4";
+import DomainEvent from 'src/Common/Domain/DomainEvent';
+import UUID4 from 'src/Common/Domain/UUID4';
+import ValueObject from 'src/Common/Domain/ValueObject';
 
+export default abstract class Entity {
+  public id: ValueObject<string>;
+  public concurrencySafeVersion: number = 1;
 
-
-export default abstract class Entity<Id> {
-
-    public id: Id
-    private events: Set<DomainEvent<any>> = new Set();
-
-    protected addEvent(event: DomainEvent<any>): void {
-
-        this.events.add(event);
+  public equals(entity: Entity): boolean {
+    if (this === entity) {
+      return true;
     }
-    public clearEvent(): void {
-        this.events.clear();
+    if (entity instanceof Entity && this.id === entity.id) {
+      return true;
     }
-    public getEvents(): Set<DomainEvent<any>> {
-        return this.events;
-    }
-
-
-    public equals(entity: Entity<Id>): boolean {
-        if (this === entity) {
-            return true;
-        }
-        if ((entity instanceof Entity) && (this.id === entity.id)) {
-            return true;
-        }
-        return false;
-    }
+    return false;
+  }
 }
