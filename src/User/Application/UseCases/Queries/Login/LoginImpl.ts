@@ -13,38 +13,44 @@ import Password from 'src/User/Domain/Password';
 import Notification from 'src/Common/Application/Notification';
 
 @QueryHandler(LoginQuery)
-export default class LoginImpl implements IQueryHandler<LoginQuery, string> {
+export default class LoginImpl implements IQueryHandler<LoginQuery, Result<string>> {
   constructor(
     @Inject(TokenService) private readonly tokenService: TokenService,
     @Inject(UserRepository) private readonly userRepository: UserRepository,
     @Inject(HashService) private readonly hashService: HashService,
   ) {}
 
-  async execute(query: LoginQuery): Promise<string> {
-    const resultEmail = Email.createFromInput(query.email);
+  async execute(query: LoginQuery): Promise<Result<string>> {
+    const resultEmail = Email.fromInput(query.email);
 
-    const resultPassword = Password.createFromInput(query.password);
+    const resultPassword = Password.fromInput(query.password);
 
-    if ('failure' in resultEmail || 'failure' in resultPassword) {
+    if (!resultEmail.ok || !resultPassword.ok) {
       const notification = new Notification();
       notification.combineWithResult(resultPassword, resultEmail);
       throw new NotValidInputException(notification.errors);
     }
 
-    const user = await this.userRepository.loadByEmail(resultEmail.ok);
+    const user = await this.userRepository.loadByEmail(resultEmail.value);
 
     if (!user) {
-      throw new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]);
+      return {
+        ok: false,
+        error: new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]),
+      };
     }
 
     const equals = await this.hashService.compare(user.password.value, query.password);
 
     if (!equals) {
-      throw new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]);
+      return {
+        ok: false,
+        error: new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]),
+      };
     }
 
     const token = await this.tokenService.sign(JSON.stringify({ userId: user.id.value, name: user.name.value }), 24 * 60);
 
-    return token;
+    return { ok: true, value: token };
   }
 }

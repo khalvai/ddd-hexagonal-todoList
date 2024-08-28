@@ -6,6 +6,6 @@ export class LiaraEmailServiceProvider implements EmailServiceProvider {
   async send(template: string, to: Email): Promise<Result<void>> {
     // talk to a 3rd party to send email
 
-    return { ok: undefined };
+    return { ok: true, value: undefined };
   }
 }

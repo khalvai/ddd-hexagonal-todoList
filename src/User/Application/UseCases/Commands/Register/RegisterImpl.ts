@@ -14,6 +14,7 @@ import AlreadyExistsException from 'src/Common/Domain/Exceptions/AlreadyExistsEx
 import UserId from 'src/User/Domain/UserId';
 import User from 'src/User/Domain/User';
 import { CommandHandler } from '@nestjs/cqrs';
+import UserStatus from 'src/User/Domain/UserStatus';
 
 @CommandHandler(RegisterCommand)
 export class RegisterUseCaseImpl implements Register {
@@ -25,40 +26,37 @@ export class RegisterUseCaseImpl implements Register {
     private readonly userRepository: UserRepository,
   ) {}
   async execute(command: RegisterCommand): Promise<Result<void>> {
-    const emailResult = Email.createFromInput(command.email);
-    const passwordResult = Password.createFromInput(command.password);
-    const confirmPasswordResult = Password.createFromInput(command.confirmPassword);
-    const nameResult = Name.createFromInput(command.name);
-    const ipResult = IP.createFromInput(command.ip);
+    const emailResult = Email.fromInput(command.email);
+    const passwordResult = Password.fromInput(command.password);
+    const confirmPasswordResult = Password.fromInput(command.confirmPassword);
+    const nameResult = Name.fromInput(command.name);
+    const ipResult = IP.fromInput(command.ip);
 
-    if (
-      'failure' in emailResult ||
-      'failure' in passwordResult ||
-      'failure' in confirmPasswordResult ||
-      'failure' in nameResult ||
-      'failure' in ipResult
-    ) {
+    if (!emailResult.ok || !passwordResult.ok || !confirmPasswordResult.ok || !nameResult.ok || !ipResult.ok) {
       const notification = new Notification();
       notification.combineWithResult(emailResult, passwordResult, confirmPasswordResult, nameResult, ipResult);
-      throw new NotValidInputException(notification.errors);
+      return { ok: false, error: new NotValidInputException(notification.errors) };
     }
 
-    const existedUser = await this.userRepository.loadByEmail(emailResult.ok);
+    const existedUser = await this.userRepository.loadByEmail(emailResult.value);
 
-    if (existedUser) {
-      throw new AlreadyExistsException('USER_ALREADY_EXISTS');
+    if (existedUser && existedUser.status !== UserStatus.PENDING_EMAIL_VERIFICATION) {
+      return {
+        ok: false,
+        error: new AlreadyExistsException('USER_ALREADY_EXISTS'),
+      };
     }
 
-    const hashedPassword = await this.hashService.createHash(passwordResult.ok.value);
+    const hashedPassword = await this.hashService.createHash(passwordResult.value.value);
 
     const uuid = UserId.create();
 
     const user: User = new User();
 
-    user.register(uuid, nameResult.ok, emailResult.ok, Password.createFromHashed(hashedPassword), ipResult.ok);
+    user.register(uuid, nameResult.value, emailResult.value, Password.createFromHashed(hashedPassword), ipResult.value);
 
     await this.userRepository.save(user);
 
-    return { ok: undefined };
+    return { ok: true, value: undefined };
   }
 }

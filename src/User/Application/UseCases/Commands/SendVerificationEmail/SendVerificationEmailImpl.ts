@@ -21,12 +21,12 @@ export class SendVerificationEmailImp implements SendVerificationEmail {
 
     const template = this.template.getVerifyEMailTemplate(token, command.email, command.ip);
 
-    const email = Email.createFromValid(command.email);
+    const email = Email.fromValid(command.email);
 
     await this.emailServicerProvider.send(template, email);
 
     console.log(token);
 
-    return { ok: undefined };
+    return { ok: true, value: undefined };
   }
 }

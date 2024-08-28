@@ -1,4 +1,5 @@
 import AggregateRoot from 'src/Common/Domain/AggregateRoot';
+import ValueObject from 'src/Common/Domain/ValueObject';
 import Email from 'src/User/Domain/Email';
 import NewUserRegistered from 'src/User/Domain/Events/NewUserRegistered';
 import { UserConfirmed } from 'src/User/Domain/Events/UserConfirmed';
@@ -8,21 +9,14 @@ import Password from 'src/User/Domain/Password';
 import UserId from 'src/User/Domain/UserId';
 import UserStatus from 'src/User/Domain/UserStatus';
 
-export default class User extends AggregateRoot<UserId> {
+export default class User extends AggregateRoot {
+  public id: ValueObject<string>;
   public email: Email;
   public password: Password;
   public name: Name;
   public status: string = UserStatus.PENDING_EMAIL_VERIFICATION;
   public createdAt: Date;
   public updatedAt: Date;
-
-  public get userId(): UserId {
-    return this.id;
-  }
-
-  public set userId(userId: UserId) {
-    this.id = userId;
-  }
 
   public register(userId: UserId, name: Name, email: Email, password: Password, ip: IP): void {
     const now = new Date();
@@ -47,16 +41,5 @@ export default class User extends AggregateRoot<UserId> {
     this.status = UserStatus.EMAIL_VERIFIED;
 
     this.addEvent(UserConfirmed.of(this));
-  }
-
-  public validatePreconditions(...args: string[]): void {
-    throw new Error('Method not implemented.');
-  }
-  public validateInvariant(): void {
-    throw new Error('Method not implemented.');
-  }
-
-  public isNull(): boolean {
-    return false;
   }
 }

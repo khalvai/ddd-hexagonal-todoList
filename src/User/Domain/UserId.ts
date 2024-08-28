@@ -1,28 +1,31 @@
-import Result from "src/Common/Application/Result";
-import UUID4 from "src/Common/Domain/UUID4";
-import Notification from "src/Common/Application/Notification";
+import Result from 'src/Common/Application/Result';
+import UUID4 from 'src/Common/Domain/UUID4';
+import Notification from 'src/Common/Application/Notification';
+import ValueObject from 'src/Common/Domain/ValueObject';
 
+export default class UserId extends ValueObject<string> {
+  public static fromInput(uuid: string): Result<UserId, Notification> {
+    const trimUUID = String(uuid).trim();
 
-export default class UserId extends UUID4 {
+    if (!UUID4.isValid(trimUUID)) {
+      const notification = new Notification();
 
-    public static createFromInput(uuid: string): Result<UserId, Notification> {
+      notification.addError('INVALID_ID');
 
-        const trimUUID = String(uuid).trim();
-
-        if (!UserId.isValid(trimUUID)) {
-            const notification = new Notification();
-
-            notification.addError("INVALID_ID");
-
-            return {
-                failure: notification
-            };
-        }
-        return { ok: new UserId(trimUUID) };
+      return {
+        ok: false,
+        error: notification,
+      };
     }
+    return { ok: true, value: new UserId(trimUUID) };
+  }
 
-    public static fromValid(uuid4: string): UUID4 {
-        return new UserId(uuid4)
-    }
+  public static fromValid(uuid4: string): UserId {
+    return new UserId(uuid4);
+  }
 
+  static create(): UserId {
+    const uuid = UUID4.create();
+    return new UserId(uuid.value);
+  }
 }

@@ -18,11 +18,11 @@ export class ConfirmVerificationEmailImpl implements ConfirmVerificationEmail {
   async execute(command: ConfirmVerificationEmailCommand): Promise<Result<void>> {
     const verifyResult = await this.tokenService.verify(command.token);
 
-    if ('failure' in verifyResult) {
-      return { failure: verifyResult.failure };
+    if (!verifyResult.ok) {
+      return { ok: false, error: verifyResult.error };
     }
 
-    let { userId, email, name, ip } = JSON.parse(verifyResult.ok);
+    let { userId, email, name, ip } = JSON.parse(verifyResult.value);
 
     const UserId2 = UserId.fromValid(userId);
 
@@ -30,7 +30,8 @@ export class ConfirmVerificationEmailImpl implements ConfirmVerificationEmail {
 
     if (!user) {
       return {
-        failure: new NotFoundException(UserResponseMessages.USER_NOT_AUTHENTICATED),
+        ok: false,
+        error: new NotFoundException(UserResponseMessages.USER_NOT_AUTHENTICATED),
       };
     }
 
@@ -38,6 +39,6 @@ export class ConfirmVerificationEmailImpl implements ConfirmVerificationEmail {
 
     await this.userRepository.save(user);
 
-    return { ok: undefined };
+    return { ok: true, value: undefined };
   }
 }

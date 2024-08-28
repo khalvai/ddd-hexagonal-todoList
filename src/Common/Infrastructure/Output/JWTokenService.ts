@@ -25,15 +25,16 @@ export default class JWTokenService implements TokenService {
 
         if (exp < Date.now()) {
           return {
-            failure: new UnauthorizedException('TOKEN_EXPIRED'),
+            ok: false,
+            error: new UnauthorizedException('TOKEN_EXPIRED'),
           };
         }
-        return { ok: JSON.stringify(data) };
+        return { ok: true, value: JSON.stringify(data) };
       }
 
-      return { failure: new UnauthorizedException() };
+      return { ok: false, error: new UnauthorizedException() };
     } catch (error) {
-      return { failure: new UnauthorizedException() };
+      return { ok: false, error: new UnauthorizedException() };
     }
   }
 }
