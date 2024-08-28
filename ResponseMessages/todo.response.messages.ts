@@ -1,0 +1,4 @@
+export enum TodoResponseMessages {
+  PRIORITY_IS_NOT_VALID = 'PRIORITY_IS_NOT_VALID',
+  TODO_ITEM_NOT_FOUND = 'TODO_ITEM_NOT_FOUND',
+}
