@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-
+import { EventDocument, EventSchema } from 'src/User/Infrastructure/Output/MongoDB/OutboxSchema';
 @Schema({ timestamps: true })
 export class UserDocument extends Document {
   @Prop({ required: true, index: true })
@@ -20,6 +20,9 @@ export class UserDocument extends Document {
 
   @Prop({ required: true })
   concurrencySafeVersion: number;
+
+  @Prop({ type: [EventSchema], default: [] })
+  events: EventDocument[];
 
   createdAt: Date;
   updatedAt: Date;

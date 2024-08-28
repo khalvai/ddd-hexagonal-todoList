@@ -11,7 +11,7 @@ export interface OutboxModel {
 
 // @Injectable()
 export class OutboxMapper {
-  toPersistence(event: DomainEvent<any>): OutboxModel {
+  static toPersistence(event: DomainEvent<any>): OutboxModel {
     return {
       occurredOn: event.occurredOn,
       id: event.id.value,
