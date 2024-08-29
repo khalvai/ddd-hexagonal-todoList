@@ -22,6 +22,7 @@ export class ItemDocument extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
 export const ItemsSchema = SchemaFactory.createForClass(ItemDocument);
 
 @Schema({ timestamps: true })

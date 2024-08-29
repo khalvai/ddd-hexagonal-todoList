@@ -25,6 +25,7 @@ export class Item extends Entity {
     item.description = description;
     item.priority = priority;
     item.createdAt = new Date();
+    item.updatedAt = new Date();
     return item;
   }
 

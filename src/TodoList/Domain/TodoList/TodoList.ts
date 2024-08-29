@@ -1,7 +1,7 @@
-import { NotFoundException } from '@nestjs/common';
 import { TodoResponseMessages } from 'ResponseMessages/todo.response.messages';
 import Result from 'src/Common/Application/Result';
 import AggregateRoot from 'src/Common/Domain/AggregateRoot';
+import { NotFoundException } from 'src/Common/Domain/Exceptions/NotFoundException';
 import ValueObject from 'src/Common/Domain/ValueObject';
 import { Description } from 'src/TodoList/Domain/Item/Description';
 import { Item } from 'src/TodoList/Domain/Item/Item';
@@ -39,7 +39,7 @@ export class TodoList extends AggregateRoot {
     return { ok: true, value: todoList };
   }
 
-  delete(todoListId: TodoListId): void {
+  delete(): void {
     const event = TodoListDeleted.of(this);
     this.addEvent(event);
   }
@@ -55,7 +55,8 @@ export class TodoList extends AggregateRoot {
   }
 
   removeItem(itemId: ItemId): Result<void> {
-    const item = this.items.find(i => i.id === itemId);
+    const item = this.items.find(i => i.id.value === itemId.value);
+
     if (!item) {
       return {
         ok: false,

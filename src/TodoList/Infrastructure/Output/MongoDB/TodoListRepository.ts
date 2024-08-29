@@ -8,17 +8,21 @@ import { TodoListCreated } from 'src/TodoList/Domain/TodoList/Events/TodoListCre
 import { TodoListDeleted } from 'src/TodoList/Domain/TodoList/Events/TodoListDeleted';
 import { TodoList } from 'src/TodoList/Domain/TodoList/TodoList';
 import { TodoListId } from 'src/TodoList/Domain/TodoList/ValueObjects/TodoListId';
+import { UserId } from 'src/TodoList/Domain/TodoList/ValueObjects/UseId';
 import { TodoListMapper } from 'src/TodoList/Infrastructure/Output/Mappers/TodoListMapper';
-import { TodoListDocument } from 'src/TodoList/Infrastructure/Output/MongoDB/TodoListSchema';
+import { ItemDocument, TodoListDocument } from 'src/TodoList/Infrastructure/Output/MongoDB/TodoListSchema';
 
 export class MongodbTodoListRepository implements TodoListRepository {
   constructor(@InjectModel(TodoListDocument.name) private todoListDocument: Model<TodoListDocument>) {}
-  async load(todoListId: TodoListId): Promise<TodoList | null> {
-    const data = await this.todoListDocument.findOne({ id: todoListId.value });
+
+  async load(todoListId: TodoListId, userId: UserId): Promise<TodoList | null> {
+    const data = await this.todoListDocument.findOne({ id: todoListId.value, userId: userId.value });
 
     if (!data) {
       return null;
     }
+
+    console.log(data.items);
 
     return TodoListMapper.toDomain(data);
   }
@@ -42,10 +46,21 @@ export class MongodbTodoListRepository implements TodoListRepository {
       }
     }
   }
+  async loadAll(userId: UserId): Promise<TodoList[]> {
+    const models = await this.todoListDocument.find({ userId: userId.value });
+    const todoLists: TodoList[] = [];
+
+    for (const model of models) {
+      todoLists.push(TodoListMapper.toDomain(model));
+    }
+
+    return todoLists;
+  }
 
   private async create(todoList: TodoList): Promise<void> {
     const todoListDocument = new this.todoListDocument({
-      userId: todoList.id.value,
+      id: todoList.id.value,
+      userId: todoList.userId.value,
       title: todoList.title.value,
       concurrencySafeVersion: 1,
     });
@@ -57,14 +72,21 @@ export class MongodbTodoListRepository implements TodoListRepository {
   }
 
   private async addItem(todoListId: TodoListId, item: Item): Promise<void> {
-    await this.todoListDocument.updateOne(
+    const newItem = {
+      id: item.id.value,
+      title: item.title.value,
+      priority: item.priority.value,
+      description: item.description.value,
+      concurrencySafeVersion: 1,
+    };
+
+    await this.todoListDocument.findOneAndUpdate(
       { id: todoListId.value },
       {
-        $push: {
-          items: item,
-        },
+        $push: { items: newItem },
         $inc: { concurrencySafeVersion: 1 },
       },
+      { new: true },
     );
   }
 
