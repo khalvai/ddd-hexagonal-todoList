@@ -22,8 +22,6 @@ export class MongodbTodoListRepository implements TodoListRepository {
       return null;
     }
 
-    console.log(data.items);
-
     return TodoListMapper.toDomain(data);
   }
   async save(todoList: TodoList): Promise<void> {
