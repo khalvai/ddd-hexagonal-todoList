@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
 import { UserResponseMessages } from 'ResponseMessages/user.response.messages';
 import { TokenService } from 'src/Common/Application/Output/TokenService';
@@ -7,6 +7,7 @@ import { ConfirmVerificationEmailCommand } from 'src/User/Application/UseCases/C
 import { UserRepository } from 'src/User/Application/Ports/UserRepository';
 import { ConfirmVerificationEmail } from 'src/User/Application/UseCases/Commands/ConfirmVerificationEmail/ConfirmVerificationEmail';
 import UserId from 'src/User/Domain/UserId';
+import { NotFoundException } from 'src/Common/Domain/Exceptions/NotFoundException';
 
 @CommandHandler(ConfirmVerificationEmailCommand)
 export class ConfirmVerificationEmailImpl implements ConfirmVerificationEmail {
