@@ -28,32 +28,19 @@ export class CreateTodoListImpl implements CreateTodoList {
     @Inject(TodoListRepository)
     private readonly todoListRepository: TodoListRepository,
   ) {}
-  async execute(command: CreateTodoListCommand): Promise<Result<TodoListId>> {
+  async execute(command: CreateTodoListCommand): Promise<TodoListId> {
     const userId = UserId.fromValid(command.userId);
 
     const titleResult = Title.fromInput(command.title);
 
     if (!titleResult.ok) {
-      return {
-        ok: false,
-        error: new NotValidInputException(titleResult.error.errors),
-      };
+      throw new NotValidInputException(titleResult.error.errors);
     }
 
     const todoList = TodoList.create(titleResult.value, userId);
 
-    if (!todoList.ok) {
-      return {
-        ok: false,
-        error: todoList.error,
-      };
-    }
+    await this.todoListRepository.save(todoList);
 
-    await this.todoListRepository.save(todoList.value);
-
-    return {
-      ok: true,
-      value: todoList.value.id,
-    };
+    return todoList.id;
   }
 }

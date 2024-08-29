@@ -17,33 +17,24 @@ export class DeleteTodoListImpl implements DeleteTodoList {
     private readonly todoListRepository: TodoListRepository,
   ) {}
 
-  async execute(command: DeleteTodoListCommand): Promise<Result<void>> {
+  async execute(command: DeleteTodoListCommand): Promise<void> {
     const userId = UserId.fromValid(command.userId);
     const todoListIdResult = TodoListId.fromInput(command.todoListId);
 
     if (!todoListIdResult.ok) {
-      return {
-        ok: false,
-        error: new NotValidInputException(todoListIdResult.error.errors),
-      };
+      throw new NotValidInputException(todoListIdResult.error.errors);
     }
 
     const todoList = await this.todoListRepository.load(todoListIdResult.value, userId);
 
     if (!todoList) {
-      return {
-        ok: false,
-        error: new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND),
-      };
+      throw new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND);
     }
 
     todoList.delete();
 
     await this.todoListRepository.save(todoList);
 
-    return {
-      ok: true,
-      value: undefined,
-    };
+    return;
   }
 }

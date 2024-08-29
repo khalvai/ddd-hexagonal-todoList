@@ -19,7 +19,7 @@ export class RemoveItemImpl implements RemoveItem {
     private readonly todoListRepository: TodoListRepository,
   ) {}
 
-  async execute(command: RemoveItemCommand): Promise<Result<void>> {
+  async execute(command: RemoveItemCommand): Promise<void> {
     const userId = UserId.fromValid(command.userId);
 
     const todoListIdResult = TodoListId.fromInput(command.todoListId);
@@ -28,35 +28,20 @@ export class RemoveItemImpl implements RemoveItem {
     if (!todoListIdResult.ok || !itemIdResult.ok) {
       const notification = new Notification();
       notification.combineWithResult(todoListIdResult, itemIdResult);
-      return {
-        ok: false,
-        error: new NotValidInputException(notification.errors),
-      };
+
+      throw new NotValidInputException(notification.errors);
     }
 
     const todoList = await this.todoListRepository.load(todoListIdResult.value, userId);
 
     if (!todoList) {
-      return {
-        ok: false,
-        error: new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND),
-      };
+      throw new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND);
     }
 
-    const removeResult = todoList.removeItem(itemIdResult.value);
-
-    if (!removeResult.ok) {
-      return {
-        ok: false,
-        error: removeResult.error,
-      };
-    }
+    todoList.removeItem(itemIdResult.value);
 
     await this.todoListRepository.save(todoList);
 
-    return {
-      ok: true,
-      value: undefined,
-    };
+    return;
   }
 }

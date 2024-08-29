@@ -28,7 +28,7 @@ export class TodoList extends AggregateRoot {
   public items: Item[];
   public createdAt: Date;
   public updatedAt: Date;
-  static create(title: Title, userId: UserId): Result<TodoList> {
+  static create(title: Title, userId: UserId): TodoList {
     // creating business logic goes here
     const todoList = new TodoList();
     todoList.id = TodoListId.create();
@@ -36,7 +36,7 @@ export class TodoList extends AggregateRoot {
     todoList.userId = userId;
     const event = TodoListCreated.of(todoList);
     todoList.addEvent(event);
-    return { ok: true, value: todoList };
+    return todoList;
   }
 
   delete(): void {
@@ -54,24 +54,16 @@ export class TodoList extends AggregateRoot {
     this.addEvent(event);
   }
 
-  removeItem(itemId: ItemId): Result<void> {
+  removeItem(itemId: ItemId): void {
     const item = this.items.find(i => i.id.value === itemId.value);
 
     if (!item) {
-      return {
-        ok: false,
-        error: new NotFoundException(TodoResponseMessages.TODO_ITEM_NOT_FOUND),
-      };
+      throw new NotFoundException(TodoResponseMessages.TODO_ITEM_NOT_FOUND);
     }
 
     const event = ItemRemoved.of(item.id);
 
     this.addEvent(event);
-
-    return {
-      ok: true,
-      value: undefined,
-    };
   }
 
   updateItem(payload: UpdateItemPayload): void {

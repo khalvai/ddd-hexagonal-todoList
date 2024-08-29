@@ -31,27 +31,25 @@ export class TodoListController {
   @UseGuards(AuthGuard)
   @Post('')
   async create(@Body() data: CreateTodoListDTO, @GetUserId() userId: string) {
-    const result = await this.commandBus.execute<CreateTodoListCommand, Result<TodoListId>>(new CreateTodoListCommand(userId, data.title));
-
-    if (!result.ok) {
-      throw result.error;
-    }
+    const response = await this.commandBus.execute<CreateTodoListCommand, TodoListId>(new CreateTodoListCommand(userId, data.title));
 
     return {
-      todoListId: result.value.value,
+      todoListId: response,
     };
   }
 
   @UseGuards(AuthGuard)
-  @Post('item')
-  async addItem(@Body() data: AddItemDTO, @GetUserId() userId: string) {
-    const result = await this.commandBus.execute<CreateTodoListCommand, Result<void>>(
-      new AddItemCommand(userId, data.todoListId, data.title, data.description, data.priority),
-    );
+  @Post(':todoListId/items')
+  async addItem(
+    @Body()
+    data: AddItemDTO,
+    @Param('todoListId') todoListId: string,
 
-    if (!result.ok) {
-      throw result.error;
-    }
+    @GetUserId() userId: string,
+  ) {
+    await this.commandBus.execute<CreateTodoListCommand, void>(
+      new AddItemCommand(userId, todoListId, data.title, data.description, data.priority),
+    );
 
     return {
       message: 'ITEM_ADDED',
@@ -61,38 +59,27 @@ export class TodoListController {
   @UseGuards(AuthGuard)
   @Get(':todoListId')
   async getTodoList(@Param('todoListId') todoListId: string, @GetUserId() userId: string) {
-    const result = await this.queryBus.execute<GetTodoListQuery, Result<TodoListReadModel>>(new GetTodoListQuery(userId, todoListId));
-
-    if (!result.ok) {
-      throw result.error;
-    }
+    const response = await this.queryBus.execute<GetTodoListQuery, TodoListReadModel>(new GetTodoListQuery(userId, todoListId));
 
     return {
-      data: result.value,
+      data: response,
     };
   }
 
   @UseGuards(AuthGuard)
   @Get('')
   async getTodoLists(@GetUserId() userId: string) {
-    const result = await this.queryBus.execute<GetTodoListsQuery, Result<TodoListReadModel[]>>(new GetTodoListsQuery(userId));
-
-    if (!result.ok) {
-      throw result.error;
-    }
+    const response = await this.queryBus.execute<GetTodoListsQuery, TodoListReadModel[]>(new GetTodoListsQuery(userId));
 
     return {
-      data: result.value,
+      data: response,
     };
   }
 
   @UseGuards(AuthGuard)
   @Delete(':todoList')
   async deleteTodoList(@Param('todoList') todoListId: string, @GetUserId() userId: string) {
-    const result = await this.commandBus.execute<DeleteTodoListCommand, Result<void>>(new DeleteTodoListCommand(userId, todoListId));
-    if (!result.ok) {
-      throw result.error;
-    }
+    await this.commandBus.execute<DeleteTodoListCommand, void>(new DeleteTodoListCommand(userId, todoListId));
 
     return {
       data: 'Todo list is Deleted',
@@ -102,10 +89,7 @@ export class TodoListController {
   @UseGuards(AuthGuard)
   @Delete(':todoListId/items/:itemId')
   async deleteItem(@Param('todoListId') todoListId: string, @Param('itemId') itemId: string, @GetUserId() userId: string) {
-    const result = await this.commandBus.execute<RemoveItemCommand, Result<void>>(new RemoveItemCommand(userId, todoListId, itemId));
-    if (!result.ok) {
-      throw result.error;
-    }
+    await this.commandBus.execute<RemoveItemCommand, void>(new RemoveItemCommand(userId, todoListId, itemId));
 
     return {
       data: 'Item from Todo list is removed',

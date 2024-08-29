@@ -16,10 +16,4 @@ export class AddItemDTO {
     example: 'Low',
   })
   priority: string;
-
-  @ApiProperty({
-    required: true,
-    example: '0b2fd1ee-bd3d-470e-92e6-86e9dd1a645e',
-  })
-  todoListId: string;
 }

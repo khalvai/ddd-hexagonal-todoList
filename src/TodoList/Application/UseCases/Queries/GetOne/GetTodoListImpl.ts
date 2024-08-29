@@ -19,28 +19,22 @@ export class GetTodoListImpl implements GetTodoList {
     private readonly todoListRepository: TodoListRepository,
   ) {}
 
-  async execute(query: GetTodoListQuery): Promise<Result<TodoListReadModel>> {
+  async execute(query: GetTodoListQuery): Promise<TodoListReadModel> {
     const userId = UserId.fromValid(query.userId);
 
     const todoListId = TodoListId.fromInput(query.todoListId);
     if (!todoListId.ok) {
-      return {
-        ok: false,
-        error: new NotValidInputException(todoListId.error.errors),
-      };
+      throw new NotValidInputException(todoListId.error.errors);
     }
 
     const todoList = await this.todoListRepository.load(todoListId.value, userId);
 
     if (!todoList) {
-      return {
-        ok: false,
-        error: new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND),
-      };
+      throw new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND);
     }
 
     const readModel = TodoListMapper.toReadModel(todoList);
 
-    return { ok: true, value: readModel };
+    return readModel;
   }
 }

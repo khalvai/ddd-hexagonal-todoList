@@ -19,7 +19,7 @@ export class AddItemImpl implements AddItem {
   @Inject(TodoListRepository)
   private readonly todoListRepository: TodoListRepository;
 
-  async execute(command: AddItemCommand): Promise<Result<void>> {
+  async execute(command: AddItemCommand): Promise<void> {
     const todoListIdResult = TodoListId.fromInput(command.todoListId);
     const titleResult = Title.fromInput(command.title);
     const descriptionResult = Description.fromInput(command.description);
@@ -29,27 +29,17 @@ export class AddItemImpl implements AddItem {
     if (!todoListIdResult.ok || !titleResult.ok || !descriptionResult.ok || !priorityResult.ok) {
       const notification = new Notification();
       notification.combineWithResult(todoListIdResult, titleResult, descriptionResult, priorityResult);
-      return {
-        ok: false,
-        error: new NotValidInputException(notification.errors),
-      };
+
+      throw new NotValidInputException(notification.errors);
     }
     const todoList = await this.todoListRepository.load(todoListIdResult.value, userId);
 
     if (!todoList) {
-      return {
-        ok: false,
-        error: new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND),
-      };
+      throw new NotFoundException(TodoResponseMessages.TODO_LIST_NOT_FOUND);
     }
 
     todoList.addItem(titleResult.value, descriptionResult.value, priorityResult.value);
 
     await this.todoListRepository.save(todoList);
-
-    return {
-      ok: true,
-      value: undefined,
-    };
   }
 }
