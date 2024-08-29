@@ -74,14 +74,11 @@ export class TodoList extends AggregateRoot {
     };
   }
 
-  updateItem(payload: UpdateItemPayload): Result<void> {
-    const item = this.items.find(i => i.id === payload.itemId);
+  updateItem(payload: UpdateItemPayload): void {
+    const item = this.items.find(i => i.id.value === payload.itemId.value);
 
     if (!item) {
-      return {
-        ok: false,
-        error: new NotFoundException(TodoResponseMessages.TODO_ITEM_NOT_FOUND),
-      };
+      throw new NotFoundException(TodoResponseMessages.TODO_ITEM_NOT_FOUND);
     }
 
     item.update(payload);
@@ -89,10 +86,5 @@ export class TodoList extends AggregateRoot {
     const event = ItemUpdated.of(item);
 
     this.addEvent(event);
-
-    return {
-      ok: true,
-      value: undefined,
-    };
   }
 }

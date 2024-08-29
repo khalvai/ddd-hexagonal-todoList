@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { TodoListRepository } from 'src/TodoList/Application/Ports/TodoListRepository';
 import { Item } from 'src/TodoList/Domain/Item/Item';
 import { ItemRemoved } from 'src/TodoList/Domain/TodoList/Events/ItemRemoved';
+import { ItemUpdated } from 'src/TodoList/Domain/TodoList/Events/ItemUpdated';
 import { NewItemAdded } from 'src/TodoList/Domain/TodoList/Events/NewItemAdded';
 import { TodoListCreated } from 'src/TodoList/Domain/TodoList/Events/TodoListCreated';
 import { TodoListDeleted } from 'src/TodoList/Domain/TodoList/Events/TodoListDeleted';
@@ -41,6 +42,10 @@ export class MongodbTodoListRepository implements TodoListRepository {
 
       if (event instanceof ItemRemoved) {
         await this.removeItem(todoList.id, todoList.items.find(i => i.id.value === event._payload.itemId)!);
+      }
+
+      if (event instanceof ItemUpdated) {
+        await this.updateItem(todoList.id, todoList.items.find(i => i.id.value === event._payload.itemId)!);
       }
     }
   }
@@ -99,6 +104,23 @@ export class MongodbTodoListRepository implements TodoListRepository {
   }
 
   private async updateItem(todoListId: TodoListId, item: Item): Promise<void> {
-    await this.todoListDocument.findOneAndUpdate({ 'id': todoListId.value, 'items.id': item.id.value }, { $set: { 'items.$': item } });
+    const data = {
+      'items.$.id': item.id.value,
+      'items.$.title': item.title.value,
+      'items.$.priority': item.priority.value,
+      'items.$.description': item.description.value,
+      'items.$.concurrencySafeVersion': item.concurrencySafeVersion + 1,
+      'items.$.updatedAt': item.updatedAt,
+    };
+
+    await this.todoListDocument.findOneAndUpdate(
+      { 'id': todoListId.value, 'items.id': item.id.value },
+      {
+        $set: data,
+        $inc: {
+          concurrencySafeVersion: 1,
+        },
+      },
+    );
   }
 }

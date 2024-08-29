@@ -33,5 +33,6 @@ export class Item extends Entity {
     this.title = payload.title ?? this.title;
     this.description = payload.description ?? this.description;
     this.priority = payload.priority ?? this.priority;
+    this.updatedAt = new Date();
   }
 }

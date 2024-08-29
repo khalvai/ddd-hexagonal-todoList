@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseFilters, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseFilters, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import Result from 'src/Common/Application/Result';
@@ -9,12 +9,14 @@ import { AddItemCommand } from 'src/TodoList/Application/UseCases/Commands/AddIt
 import { CreateTodoListCommand } from 'src/TodoList/Application/UseCases/Commands/CreateTodoList/CrateTodoListCommand';
 import { DeleteTodoListCommand } from 'src/TodoList/Application/UseCases/Commands/DeleteTodoList/DeleteTodoListCommand';
 import { RemoveItemCommand } from 'src/TodoList/Application/UseCases/Commands/RemoveItem/RemovItemCommand';
+import { UpdateItemCommand } from 'src/TodoList/Application/UseCases/Commands/UpdateItem/UpdateItemCommand';
 import { GetTodoListsQuery } from 'src/TodoList/Application/UseCases/Queries/GetAll/GetTodoListsQuery';
 import { GetTodoListQuery } from 'src/TodoList/Application/UseCases/Queries/GetOne/GetTodoListQuery';
 import { TodoListReadModel } from 'src/TodoList/Application/UseCases/Queries/TodoListReadModel';
 import { TodoListId } from 'src/TodoList/Domain/TodoList/ValueObjects/TodoListId';
 import { AddItemDTO } from 'src/TodoList/Infrastructure/Input/Http/Dto/AddItem.dto';
 import { CreateTodoListDTO } from 'src/TodoList/Infrastructure/Input/Http/Dto/CreateTodoList.dto';
+import { UpdateItemDto } from 'src/TodoList/Infrastructure/Input/Http/Dto/UpdateItem.dto';
 
 @ApiBearerAuth()
 @ApiTags('Todo List')
@@ -107,6 +109,20 @@ export class TodoListController {
 
     return {
       data: 'Item from Todo list is removed',
+    };
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch(':todoListId/items/:itemId')
+  async updateItem(
+    @Param('todoListId') todoListId: string,
+    @Param('itemId') itemId: string,
+    @Body() data: UpdateItemDto,
+    @GetUserId() userId: string,
+  ) {
+    await this.commandBus.execute<UpdateItemCommand, void>(new UpdateItemCommand(userId, todoListId, itemId, data));
+    return {
+      data: 'Item updated',
     };
   }
 }

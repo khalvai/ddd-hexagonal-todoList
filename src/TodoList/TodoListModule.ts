@@ -8,6 +8,7 @@ import { AddItemImpl } from 'src/TodoList/Application/UseCases/Commands/AddItem/
 import { CreateTodoListImpl } from 'src/TodoList/Application/UseCases/Commands/CreateTodoList/CreateTodoListImpl';
 import { DeleteTodoListImpl } from 'src/TodoList/Application/UseCases/Commands/DeleteTodoList/DeleteTodoListImpl';
 import { RemoveItemImpl } from 'src/TodoList/Application/UseCases/Commands/RemoveItem/RemoveItemImpl';
+import { UpdateItemImpl } from 'src/TodoList/Application/UseCases/Commands/UpdateItem/UpdateItemImpl';
 import { GetTodoListsImpl } from 'src/TodoList/Application/UseCases/Queries/GetAll/GetTodoListsImpl';
 import { GetTodoListImpl } from 'src/TodoList/Application/UseCases/Queries/GetOne/GetTodoListImpl';
 import { TodoListController } from 'src/TodoList/Infrastructure/Input/Http/TodoListController';
@@ -28,6 +29,7 @@ import { MongoUserRepository } from 'src/User/Infrastructure/Output/MongoDB/User
     CreateTodoListImpl,
     DeleteTodoListImpl,
     AddItemImpl,
+    UpdateItemImpl,
     RemoveItemImpl,
     GetTodoListImpl,
     GetTodoListsImpl,
