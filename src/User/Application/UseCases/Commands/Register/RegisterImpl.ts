@@ -25,7 +25,7 @@ export class RegisterUseCaseImpl implements Register {
     @Inject(UserRepository)
     private readonly userRepository: UserRepository,
   ) {}
-  async execute(command: RegisterCommand): Promise<Result<void>> {
+  async execute(command: RegisterCommand): Promise<void> {
     const emailResult = Email.fromInput(command.email);
     const passwordResult = Password.fromInput(command.password);
     const confirmPasswordResult = Password.fromInput(command.confirmPassword);
@@ -35,16 +35,13 @@ export class RegisterUseCaseImpl implements Register {
     if (!emailResult.ok || !passwordResult.ok || !confirmPasswordResult.ok || !nameResult.ok || !ipResult.ok) {
       const notification = new Notification();
       notification.combineWithResult(emailResult, passwordResult, confirmPasswordResult, nameResult, ipResult);
-      return { ok: false, error: new NotValidInputException(notification.errors) };
+      throw new NotValidInputException(notification.errors);
     }
 
     const existedUser = await this.userRepository.loadByEmail(emailResult.value);
 
     if (existedUser && existedUser.status !== UserStatus.PENDING_EMAIL_VERIFICATION) {
-      return {
-        ok: false,
-        error: new AlreadyExistsException('USER_ALREADY_EXISTS'),
-      };
+      throw new AlreadyExistsException('USER_ALREADY_EXISTS');
     }
 
     const hashedPassword = await this.hashService.createHash(passwordResult.value.value);
@@ -57,6 +54,6 @@ export class RegisterUseCaseImpl implements Register {
 
     await this.userRepository.save(user);
 
-    return { ok: true, value: undefined };
+    return;
   }
 }

@@ -13,14 +13,14 @@ import Password from 'src/User/Domain/Password';
 import Notification from 'src/Common/Application/Notification';
 
 @QueryHandler(LoginQuery)
-export default class LoginImpl implements IQueryHandler<LoginQuery, Result<string>> {
+export default class LoginImpl implements Login {
   constructor(
     @Inject(TokenService) private readonly tokenService: TokenService,
     @Inject(UserRepository) private readonly userRepository: UserRepository,
     @Inject(HashService) private readonly hashService: HashService,
   ) {}
 
-  async execute(query: LoginQuery): Promise<Result<string>> {
+  async execute(query: LoginQuery): Promise<string> {
     const resultEmail = Email.fromInput(query.email);
 
     const resultPassword = Password.fromInput(query.password);
@@ -34,23 +34,17 @@ export default class LoginImpl implements IQueryHandler<LoginQuery, Result<strin
     const user = await this.userRepository.loadByEmail(resultEmail.value);
 
     if (!user) {
-      return {
-        ok: false,
-        error: new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]),
-      };
+      throw new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]);
     }
 
     const equals = await this.hashService.compare(user.password.value, query.password);
 
     if (!equals) {
-      return {
-        ok: false,
-        error: new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]),
-      };
+      throw new NotValidInputException([UserResponseMessages.INVALID_CREDENTIALS]);
     }
 
     const token = await this.tokenService.sign(JSON.stringify({ userId: user.id.value, name: user.name.value }), 24 * 60);
 
-    return { ok: true, value: token };
+    return token;
   }
 }

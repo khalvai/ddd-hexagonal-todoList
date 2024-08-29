@@ -13,9 +13,9 @@ export class Consumer {
   async onUserRegistered(event: NewUserRegistered) {
     const { email, name, ip, userId } = JSON.parse(event.payload);
 
-    const result = this.sendVerificationEmailInput.execute({ email, ip, name, userId });
-    if ('failure' in result) {
-      throw result.failure;
+    const result = await this.sendVerificationEmailInput.execute({ email, ip, name, userId });
+    if (!result.ok) {
+      throw result.error;
     }
   }
 }

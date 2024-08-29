@@ -15,12 +15,11 @@ export class ConfirmVerificationEmailImpl implements ConfirmVerificationEmail {
     @Inject(TokenService) private readonly tokenService: TokenService,
     @Inject(UserRepository) private readonly userRepository: UserRepository,
   ) {}
-
-  async execute(command: ConfirmVerificationEmailCommand): Promise<Result<void>> {
+  async execute(command: ConfirmVerificationEmailCommand): Promise<void> {
     const verifyResult = await this.tokenService.verify(command.token);
 
     if (!verifyResult.ok) {
-      return { ok: false, error: verifyResult.error };
+      throw verifyResult.error;
     }
 
     let { userId, email, name, ip } = JSON.parse(verifyResult.value);
@@ -30,16 +29,13 @@ export class ConfirmVerificationEmailImpl implements ConfirmVerificationEmail {
     const user = await this.userRepository.load(UserId2);
 
     if (!user) {
-      return {
-        ok: false,
-        error: new NotFoundException(UserResponseMessages.USER_NOT_AUTHENTICATED),
-      };
+      throw new NotFoundException(UserResponseMessages.USER_NOT_AUTHENTICATED);
     }
 
     user.confirmEmail();
 
     await this.userRepository.save(user);
 
-    return { ok: true, value: undefined };
+    return;
   }
 }
