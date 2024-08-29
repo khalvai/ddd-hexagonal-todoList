@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from 'src/User/UserModule';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MongooseModule } from '@nestjs/mongoose';
+import { TodoListModule } from 'src/TodoList/TodoListModule';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     UserModule,
+    TodoListModule,
   ],
   controllers: [AppController],
   providers: [AppService],
